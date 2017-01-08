@@ -211,9 +211,9 @@ open class BMPlayerLayerView: UIView {
     
     // MARK: - 设置视频URL
     fileprivate func onSetVideoURL() {
-        self.repeatToPlay = false
-        self.playDidEnd   = false
-        self.configPlayer()
+        repeatToPlay = false
+        playDidEnd   = false
+        configPlayer()
         
     }
     
@@ -245,24 +245,22 @@ open class BMPlayerLayerView: UIView {
     }
     
     fileprivate func configPlayer(){
-        self.player?.removeObserver(self, forKeyPath: "rate")
+        player?.removeObserver(self, forKeyPath: "rate")
+        playerItem = AVPlayerItem(url: videoURL)
         
-        self.playerItem = AVPlayerItem(url: videoURL)
+        player     = AVPlayer(playerItem: playerItem!)
+        player!.addObserver(self, forKeyPath: "rate", options: NSKeyValueObservingOptions.new, context: nil)
         
-        self.player     = AVPlayer(playerItem: playerItem!)
+        playerLayer = AVPlayerLayer(player: player)
         
-        self.player!.addObserver(self, forKeyPath: "rate", options: NSKeyValueObservingOptions.new, context: nil)
+        playerLayer!.videoGravity = videoGravity
         
-        self.playerLayer = AVPlayerLayer(player: player)
+        layer.addSublayer(playerLayer!)
         
-        self.playerLayer!.videoGravity = videoGravity
+        timer  = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(playerTimerAction), userInfo: nil, repeats: true)
         
-        self.layer.insertSublayer(playerLayer!, at: 0)
-        
-        self.timer  = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(playerTimerAction), userInfo: nil, repeats: true)
-        
-        self.setNeedsLayout()
-        self.layoutIfNeeded()
+        setNeedsLayout()
+        layoutIfNeeded()
     }
     
     
