@@ -17,7 +17,9 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
     var playerCurrentTimeLabel  : UILabel?  { get { return  currentTimeLabel } }
     var playerTotalTimeLabel    : UILabel?  { get { return  totalTimeLabel } }
     
+    
     var playerPlayButton        : UIButton? { get { return  playButton } }
+    var playerPlayButtonMiddle : UIButton? { get { return  playButtonMiddle } }
     var playerFullScreenButton  : UIButton? { get { return  fullScreenButton } }
     var playerBackButton        : UIButton? { get { return  backButton } }
     var playerReplayButton      : UIButton? { get { return  centerButton } }
@@ -51,6 +53,7 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
     var progressView     = UIProgressView()
     
     var playButton       = UIButton(type: UIButtonType.custom)
+    var playButtonMiddle = UIButton(type: UIButtonType.custom)
     var fullScreenButton = UIButton(type: UIButtonType.custom)
     var slowButton       = UIButton(type: UIButtonType.custom)
     var mirrorButton     = UIButton(type: UIButtonType.custom)
@@ -78,6 +81,7 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
     func showPlayerUIComponents() {
         topMaskView.alpha    = 1.0
         bottomMaskView.alpha = 1.0
+        playButtonMiddle.isHidden = false
         mainMaskView.backgroundColor = UIColor ( red: 0.0, green: 0.0, blue: 0.0, alpha: 0.4 )
         
         if isFullScreen {
@@ -87,6 +91,7 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
     
     func hidePlayerUIComponents() {
         centerButton.isHidden = true
+        playButtonMiddle.isHidden = true
         topMaskView.alpha    = 0.0
         bottomMaskView.alpha = 0.0
         mainMaskView.backgroundColor = UIColor ( red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0 )
@@ -127,8 +132,8 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
                 }
             }
             fullScreenButton.setImage(BMImageResourcePath("BMPlayer_portialscreen"), for: UIControlState())
-            ratioButton.isHidden = false
-            chooseDefitionView.isHidden = false
+            //ratioButton.isHidden = false
+            //chooseDefitionView.isHidden = false
             if BMPlayerConf.topBarShowInCase.rawValue == 2 {
                 topMaskView.isHidden = true
             } else {
@@ -162,6 +167,7 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
     
     func showPlayToTheEndView() {
         centerButton.isHidden = false
+        playButtonMiddle.isHidden = true
     }
     
     func showLoader() {
@@ -191,11 +197,7 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
             DispatchQueue.global(qos: .default).async {
                 let data = try? Data(contentsOf: url) //make sure your image in this url does exist, otherwise unwrap in a if let check
                 DispatchQueue.main.async(execute: {
-                    if let data = data {
-                        self.maskImageView.image = UIImage(data: data)
-                    } else {
-                        self.maskImageView.image = nil
-                    }
+                    self.maskImageView.image = UIImage(data: data!)
                     self.hideLoader()
                 });
             }
@@ -259,6 +261,7 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
     
     @objc fileprivate func onReplyButtonPressed() {
         centerButton.isHidden = true
+        playButtonMiddle.isHidden = false
         delegate?.controlViewDidPressOnReply()
     }
     
@@ -289,6 +292,9 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
         topMaskView.addSubview(titleLabel)
         topMaskView.addSubview(ratioButton)
         self.addSubview(chooseDefitionView)
+        backButton.isHidden = true
+        ratioButton.isHidden = true
+        
         
         backButton.setImage(BMImageResourcePath("BMPlayer_back"), for: UIControlState())
         ratioButton.setBackgroundImage(BMImageResourcePath("BMPlayer_ratio"), for: UIControlState())
@@ -296,6 +302,8 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
         titleLabel.textColor = UIColor.white
         titleLabel.text      = "Hello World"
         titleLabel.font      = UIFont.systemFont(ofSize: 16)
+        
+        titleLabel.isHidden = true
         
         chooseDefitionView.clipsToBounds = true
         
@@ -311,6 +319,14 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
         
         playButton.setImage(BMImageResourcePath("BMPlayer_play"), for: UIControlState())
         playButton.setImage(BMImageResourcePath("BMPlayer_pause"), for: UIControlState.selected)
+        
+        playButtonMiddle.setImage(BMImageResourcePath("BMPlayer_play_middle"), for: UIControlState())
+        playButtonMiddle.setImage(BMImageResourcePath("BMPlayer_pause_middle"), for: UIControlState.selected)
+        
+        
+        
+        
+        
         
         currentTimeLabel.textColor  = UIColor.white
         currentTimeLabel.font       = UIFont.systemFont(ofSize: 12)
@@ -371,6 +387,8 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
         
         seekToViewImage.image = BMImageResourcePath("BMPlayer_seek_to_image")
         
+        self.addSubview(playButtonMiddle)
+        playButtonMiddle.isHidden = false
         self.addSubview(centerButton)
         centerButton.isHidden = true
         centerButton.setImage(BMImageResourcePath("BMPlayer_replay"), for: UIControlState())
@@ -430,13 +448,13 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
         
         // 底部
         playButton.snp.makeConstraints { (make) in
-            make.width.equalTo(50)
+            make.width.equalTo(0)
             make.height.equalTo(50)
             make.left.bottom.equalTo(bottomMaskView)
         }
         
         currentTimeLabel.snp.makeConstraints { (make) in
-            make.left.equalTo(playButton.snp.right)
+            make.left.equalTo(bottomMaskView)
             make.centerY.equalTo(playButton)
             make.width.equalTo(40)
         }
@@ -509,24 +527,30 @@ class BMPlayerControlView: UIView, BMPlayerCustomControlView {
             make.centerY.equalTo(mainMaskView.snp.centerY)
             make.width.height.equalTo(50)
         }
+        playButtonMiddle.snp.makeConstraints { (make) in
+            make.centerX.equalTo(mainMaskView.snp.centerX)
+            make.centerY.equalTo(mainMaskView.snp.centerY)
+            make.width.height.equalTo(50)
+        }
+        
     }
     
     fileprivate func BMImageResourcePath(_ fileName: String) -> UIImage? {
         let bundle = Bundle(for: self.classForCoder)
         let image  = UIImage(named: fileName, in: bundle, compatibleWith: nil)
         return image
-//        let podBundle = Bundle(for: self.classForCoder)
-//        if let bundleURL = podBundle.url(forResource: "BMPlayer", withExtension: "bundle") {
-//            if let bundle = Bundle(url: bundleURL) {
-//                let image = UIImage(named: fileName, in: bundle, compatibleWith: nil)
-//                return image
-//            }else {
-//                assertionFailure("Could not load the bundle")
-//            }
-//        }else {
-//            assertionFailure("Could not create a path to the bundle")
-//        }
-//        return nil
+        //        let podBundle = Bundle(for: self.classForCoder)
+        //        if let bundleURL = podBundle.url(forResource: "BMPlayer", withExtension: "bundle") {
+        //            if let bundle = Bundle(url: bundleURL) {
+        //                let image = UIImage(named: fileName, in: bundle, compatibleWith: nil)
+        //                return image
+        //            }else {
+        //                assertionFailure("Could not load the bundle")
+        //            }
+        //        }else {
+        //            assertionFailure("Could not create a path to the bundle")
+        //        }
+        //        return nil
     }
 }
 

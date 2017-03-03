@@ -47,7 +47,7 @@ open class BMPlayer: UIView {
     
     open weak var delegate: BMPlayerDelegate?
     
-    open var backBlock:((Bool) -> Void)?
+    open var backBlock:(() -> Void)?
     
     /// Gesture used to show / hide control view
     open var tapGesture: UITapGestureRecognizer!
@@ -125,7 +125,7 @@ open class BMPlayer: UIView {
     
     //Cache is playing result to improve callback performance
     fileprivate var isPlayingCache: Bool? = nil
-
+    
     
     // MARK: - Public functions
     /**
@@ -197,6 +197,7 @@ open class BMPlayer: UIView {
         
         
         controlView.playerPlayButton?.isSelected = true
+        controlView.playerPlayButtonMiddle?.isSelected = true
         playerLayer?.play()
         isPauseByUser = false
     }
@@ -208,6 +209,7 @@ open class BMPlayer: UIView {
      */
     open func pause(allowAutoPlay allow: Bool = false) {
         controlView.playerPlayButton?.isSelected = false
+        controlView.playerPlayButtonMiddle?.isSelected = false
         playerLayer?.pause()
         isPauseByUser = !allow
     }
@@ -269,8 +271,11 @@ open class BMPlayer: UIView {
             if player.isPlaying {
                 autoFadeOutControlBar()
                 controlView.playerPlayButton?.isSelected = true
+                controlView.playerPlayButtonMiddle?.isSelected = true
+                
             } else {
                 controlView.playerPlayButton?.isSelected = false
+                controlView.playerPlayButtonMiddle?.isSelected = false
             }
             if isPlayingCache != player.isPlaying && playStateDidChange != nil {
                 isPlayingCache = player.isPlaying
@@ -417,7 +422,7 @@ open class BMPlayer: UIView {
     }
     
     @objc fileprivate func progressSliderValueChanged(_ sender: UISlider)  {
-//        self.pause(allowAutoPlay: true)
+        //        self.pause(allowAutoPlay: true)
         cancelAutoFadeOutControlBar()
     }
     
@@ -444,9 +449,7 @@ open class BMPlayer: UIView {
             fullScreenButtonPressed(nil)
         } else {
             playerLayer?.prepareToDeinit()
-        }
-        if let block = backBlock {
-            block(isFullScreen)
+            backBlock?()
         }
     }
     
@@ -480,8 +483,6 @@ open class BMPlayer: UIView {
             
         })
         controlView.playerReplayButton?.isHidden = true
-        isPlayToTheEnd = false
-        playerLayer?.isPlaying = true
         self.play()
     }
     
@@ -594,6 +595,7 @@ open class BMPlayer: UIView {
     
     fileprivate func initUIData() {
         controlView.playerPlayButton?.addTarget(self, action: #selector(self.playButtonPressed(_:)), for: UIControlEvents.touchUpInside)
+        controlView.playerPlayButtonMiddle?.addTarget(self, action: #selector(self.playButtonPressed(_:)), for: UIControlEvents.touchUpInside)
         controlView.playerFullScreenButton?.addTarget(self, action: #selector(self.fullScreenButtonPressed(_:)), for: UIControlEvents.touchUpInside)
         controlView.playerBackButton?.addTarget(self, action: #selector(self.backButtonPressed(_:)), for: UIControlEvents.touchUpInside)
         controlView.playerTimeSlider?.addTarget(self, action: #selector(progressSliderTouchBegan(_:)), for: UIControlEvents.touchDown)
@@ -667,6 +669,7 @@ extension BMPlayer: BMPlayerLayerViewDelegate {
         case BMPlayerState.playedToTheEnd:
             isPlayToTheEnd = true
             controlView.playerPlayButton?.isSelected = false
+            controlView.playerPlayButtonMiddle?.isSelected = false
             controlView.showPlayToTheEndView()
         default:
             break

@@ -38,12 +38,7 @@ class VideoPlayViewController: UIViewController {
             make.height.equalTo(view.snp.width).multipliedBy(9.0/16.0)
         }
         player.delegate = self
-        player.backBlock = { [unowned self] (isFullScreen) in
-            if isFullScreen == true {
-                return
-            }
-            let _ = self.navigationController?.popViewController(animated: true)
-        }
+      
         
         /// Listening to player state changes with Block
         //Listen to when the player is playing or stopped

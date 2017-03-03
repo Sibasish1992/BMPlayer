@@ -22,7 +22,7 @@ open class BMPlayerManager {
     open static let shared = BMPlayerManager()
     
     /// 主题色
-    open var tintColor   = UIColor.white
+    open var tintColor   = UIColor.red
     
     /// Loader样式
     open var loaderType  = NVActivityIndicatorType.ballRotateChase
